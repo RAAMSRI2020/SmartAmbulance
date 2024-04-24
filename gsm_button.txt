@@ -1,22 +1,24 @@
-void gsm_send();
-void setup()
-{
+const int buttonPin = 2; // Pin for the push button
+
+void gsm_send(); // Function prototype
+
+void setup() {
   Serial.begin(9600);
   delay(3000);
+  pinMode(buttonPin, INPUT_PULLUP); // Configure button pin as input with pull-up resistor
 }
 
-void loop()
-{
-  gsm_send();
+void loop() {
+  if (digitalRead(buttonPin) == LOW) { // Check if button is pressed
+    gsm_send(); // Call function to send message
+    delay(1000); // Delay to prevent multiple sends from a single press
+  }
 }
 
-//*********************************************************************************************
-// GSM SEND FUNCTION
-//********************************************************************************************* 
-void gsm_send()
-{  
-  Serial.println("sending sms1...     ");
-  delay(500);
+void gsm_send() {
+  Serial.println("Sending SMS..."); // Debugging message
+  
+  // GSM send functionality
   Serial.print("AT");         // SIM CARD READY CHECK
   delay(100);  delay(100);
   Serial.write(13);           // ENTER
@@ -39,7 +41,7 @@ void gsm_send()
   delay(100);  delay(100);
   Serial.print('"');
   delay(100);  delay(100);
-  Serial.print("6383803739");
+  Serial.print("6383803739"); // replace this with your desired phone number
   delay(100);  delay(100);
   Serial.print('"');
   delay(100);  delay(100);
@@ -47,8 +49,7 @@ void gsm_send()
   delay(1000);
   Serial.write(10);
   delay(1000);
-  delay(100);  delay(100);
-  Serial.print("Hello I am working");
+  Serial.print("Hello I am working"); // replace this with your desired message
   delay(1000);
   Serial.write(26);        // CTRL+Z
   delay(100);  delay(100);

@@ -1,0 +1,75 @@
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
+
+const int gpsRxPin = 2;
+const int gpsTxPin = 3;
+const int buttonPin = 4;
+const int gsmRxPin = 5;
+const int gsmTxPin = 6;
+
+SoftwareSerial gpsSerial(gpsRxPin, gpsTxPin);
+SoftwareSerial gsmSerial(gsmRxPin, gsmTxPin);
+
+TinyGPSPlus gps;
+
+void setup() {
+  Serial.begin(9600);
+  gpsSerial.begin(9600);
+  gsmSerial.begin(9600);
+  pinMode(buttonPin, INPUT_PULLUP);
+}
+
+void loop() {
+  if (digitalRead(buttonPin) == LOW) {
+    gsm_send();
+    while (digitalRead(buttonPin) == LOW) {
+      delay(10);
+    }
+  }
+
+  while (gpsSerial.available() > 0) {
+    if (gps.encode(gpsSerial.read())) {
+      // Optional: Print GPS information to the serial monitor
+      // printGPSInfo();
+    }
+  }
+}
+
+void gsm_send() {
+  if (gps.location.isValid()) {
+    String message = "Latitude: " + String(gps.location.lat(), 6) + ", Longitude: " + String(gps.location.lng(), 6);
+    
+    // Check if GSM module is ready
+    gsmSerial.println("AT");
+    delay(100);
+    if (gsmSerial.find("OK")) {
+      // Set SMS mode to text mode
+      gsmSerial.println("AT+CMGF=1");
+      delay(100);
+      if (gsmSerial.find("OK")) {
+        // Send SMS message
+        gsmSerial.print("AT+CMGS=\"+916383803739\""); // Replace with recipient's phone number
+        delay(100);
+        gsmSerial.write(0x0D);
+        delay(100);
+        gsmSerial.write(0x0A);
+        delay(100);
+        gsmSerial.print(message);
+        delay(100);
+        gsmSerial.write(0x1A); // Send Ctrl+Z to indicate end of message
+        delay(100);
+        if (gsmSerial.find("OK")) {
+          Serial.println("SMS sent successfully.");
+        } else {
+          Serial.println("Error: SMS sending failed.");
+        }
+      } else {
+        Serial.println("Error: Unable to set SMS mode.");
+      }
+    } else {
+      Serial.println("Error: GSM module not ready.");
+    }
+  } else {
+    Serial.println("Error: GPS location not available.");
+  }
+}

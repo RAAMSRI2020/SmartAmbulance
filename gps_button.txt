@@ -3,12 +3,18 @@
 
 // Define the RX and TX pins for the GPS module
 const int gpsRxPin = 2; // Connect GPS TX to Arduino pin 2
-const int gpsTxPin = 3; // Connect GPS RX to Arduino pin 39
+const int gpsTxPin = 3; // Connect GPS RX to Arduino pin 3
+
+// Define the pin for the button
+const int buttonPin = 4; // Connect button to Arduino pin 4
+
 // Create a SoftwareSerial object to communicate with the GPS module
 SoftwareSerial gpsSerial(gpsRxPin, gpsTxPin);
 
 // Create a TinyGPS++ object
 TinyGPSPlus gps;
+
+bool buttonPressed = false;
 
 void setup() {
   // Initialize serial communication with a baud rate of 9600
@@ -16,41 +22,36 @@ void setup() {
   
   // Initialize serial communication with the GPS module
   gpsSerial.begin(9600);
+  
+  // Set the button pin as input
+  pinMode(buttonPin, INPUT_PULLUP);
 }
 
 void loop() {
-  // Keep reading data from the GPS module
-  while (gpsSerial.available() > 0) {
-    // If data is available, parse it using TinyGPS++
-    if (gps.encode(gpsSerial.read())) {
-      // Print GPS information to the serial monitor
-      printGPSInfo();
+  // Check if the button is pressed
+  if (digitalRead(buttonPin) == LOW && !buttonPressed) {
+    buttonPressed = true;
+    // Keep reading data from the GPS module
+    while (gpsSerial.available() > 0) {
+      // If data is available, parse it using TinyGPS++
+      if (gps.encode(gpsSerial.read())) {
+        // Print GPS information to the serial monitor
+        printGPSInfo();
+      }
     }
+  } else if (digitalRead(buttonPin) == HIGH && buttonPressed) {
+    buttonPressed = false;
   }
-  
-  // Optional: Other code can go here
 }
 
 void printGPSInfo() {
-  // Print latitude, longitude, and altitude if valid
+  // Print latitude and longitude if valid
   if (gps.location.isValid()) {
     Serial.print("Latitude: ");
     Serial.println(gps.location.lat(), 6);
     Serial.print("Longitude: ");
     Serial.println(gps.location.lng(), 6);
-    Serial.print("Altitude (m): ");
-    Serial.println(gps.altitude.meters());
   } else {
     Serial.println("Location not available");
   }
-  
-  // Print number of satellites if valid
-  if (gps.satellites.isValid()) {
-    Serial.print("Satellites: ");
-    Serial.println(gps.satellites.value());
-  } else {
-    Serial.println("Satellite information not available");
-  }
-  
-  Serial.println(); // Print a blank line for readability
 }
