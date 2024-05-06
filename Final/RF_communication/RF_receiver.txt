@@ -1,0 +1,46 @@
+#include <RH_ASK.h>
+#include <SPI.h>
+
+RH_ASK rf_driver(2000, 12); // Data pin = 12
+
+const int redLedPin = 13;    // Pin for the red LED
+const int greenLedPin = 11;  // Pin for the green LED
+const int blueLedPin = 10;   // Pin for the blue LED
+
+void setup() {
+  Serial.begin(9600);  // Initialize serial communication
+  rf_driver.init();
+  pinMode(redLedPin, OUTPUT);     // Set red LED pin as output
+  pinMode(greenLedPin, OUTPUT);   // Set green LED pin as output
+  pinMode(blueLedPin, OUTPUT);    // Set blue LED pin as output
+
+  // Turn on the red LED initially
+  digitalWrite(redLedPin, HIGH);
+  // Turn off the green LED initially
+  digitalWrite(greenLedPin, LOW);
+  // Turn off the blue LED initially
+  digitalWrite(blueLedPin, LOW);
+}
+
+void loop() {
+  uint8_t buf[RH_ASK_MAX_MESSAGE_LEN];
+  uint8_t buflen = sizeof(buf);
+
+  if (rf_driver.recv(buf, &buflen)) { // Check if we received a message
+    buf[buflen] = '\0';
+    if (strcmp((char *)buf, "Emergency") == 0) { // Check if received message is "Emergency"
+      Serial.println("Emergency received!"); // Print to serial monitor
+      
+      // Turn off the red LED
+      digitalWrite(redLedPin, LOW);
+      // Turn on the green LED
+      digitalWrite(greenLedPin, HIGH);
+      // Delay for a while
+      delay(5000); // 5000 milliseconds = 5 seconds
+      // Turn off the green LED
+      digitalWrite(greenLedPin, LOW);
+      // Turn on the blue LED
+      digitalWrite(blueLedPin, HIGH);
+    }
+  }
+}
