@@ -9,27 +9,16 @@ SoftwareSerial gpsSerial(gpsRxPin, gpsTxPin);
 TinyGPSPlus gps;
 bool buttonPressed = false;
 
-void setup() {
-  Serial.begin(9600);
-  delay(3000); // Wait for serial monitor to open
-  gpsSerial.begin(9600);
-  pinMode(buttonPin, INPUT_PULLUP);
-}
+// Define an array of phone numbers
+String phoneNumbers[] = {
+  "+916383803739", // Add more phone numbers as needed
+  "+917010407993",
+  "+917397573123",
+  "+918072487519",
+  "+918610505165",
+};
 
-void loop() {
-  if (digitalRead(buttonPin) == LOW && !buttonPressed) {
-    buttonPressed = true;
-    while (gpsSerial.available() > 0) {
-      if (gps.encode(gpsSerial.read())) {
-        sendGPSviaSMS();
-      }
-    }
-  } else if (digitalRead(buttonPin) == HIGH && buttonPressed) {
-    buttonPressed = false;
-  }
-}
-
-void sendGPSviaSMS() {
+void sendGPSviaSMS(String phoneNumber) {
   Serial.println("Sending GPS coordinates via SMS...");
   
   // Calculate Google Maps live location link
@@ -39,7 +28,7 @@ void sendGPSviaSMS() {
   String emergencyMessage = "Emergency, Ambulance no: XXXXX is coming";
   
   // GSM functionality to send SMS
-  Serial.println("Sending SMS...");
+  Serial.println("Sending SMS to: " + phoneNumber);
   delay(1000);
   Serial.print("AT");
   delay(100);  delay(100);
@@ -63,7 +52,7 @@ void sendGPSviaSMS() {
   delay(100);  delay(100);
   Serial.print('"');
   delay(100);  delay(100);
-  Serial.print("6383803739"); // replace this with your desired phone number
+  Serial.print(phoneNumber); // Use the provided phone number
   delay(100);  delay(100);
   Serial.print('"');
   delay(100);  delay(100);
@@ -71,7 +60,6 @@ void sendGPSviaSMS() {
   delay(1000);
   Serial.write(10);
   delay(1000);
-  delay(100);
   Serial.println("Google Maps Live Location Link: " + googleMapsLink);
   delay(100);
   Serial.println(emergencyMessage); // Include the emergency message
@@ -79,4 +67,27 @@ void sendGPSviaSMS() {
   Serial.write(26);        // CTRL+Z
   delay(100);  
   Serial.println("   COMPLETED     ");
+}
+
+void setup() {
+  Serial.begin(9600);
+  delay(3000); // Wait for serial monitor to open
+  gpsSerial.begin(9600);
+  pinMode(buttonPin, INPUT_PULLUP);
+}
+
+void loop() {
+  if (digitalRead(buttonPin) == LOW && !buttonPressed) {
+    buttonPressed = true;
+    while (gpsSerial.available() > 0) {
+      if (gps.encode(gpsSerial.read())) {
+        // Iterate through the array and send SMS to each number
+        for (int i = 0; i < sizeof(phoneNumbers) / sizeof(phoneNumbers[0]); i++) {
+          sendGPSviaSMS(phoneNumbers[i]);
+        }
+      }
+    }
+  } else if (digitalRead(buttonPin) == HIGH && buttonPressed) {
+    buttonPressed = false;
+  }
 }
