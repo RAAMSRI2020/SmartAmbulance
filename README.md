@@ -1,6 +1,7 @@
 #LifeLaneGuardian
 
 #Description
+
 LifeLaneGuardian is an embedded project aimed at reducing the latency period of ambulances in heavy traffic situations by providing real-time alerts to the police and implementing voice note indications in traffic signals. The project also incorporates a Bluetooth MP3 decoding board module with inbuilt SD card slot, USB support, FM radio, and remote control capabilities.
 
 #Table of Contents
